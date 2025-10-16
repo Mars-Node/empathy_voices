@@ -1,20 +1,30 @@
-# Empathy Voices 🎙️
-A Streamlit app that generates empathetic responses using AI.
+## 🎙️ Empathy Voices
+Because voices carry memories words alone can’t.
+Empathy Voices is a Streamlit web app that allows users to type a message and hear it spoken aloud in different AI-generated voices. Users can select a voice tone and optionally adjust emotional intensity like enthusiasm or sadness.
+## Features
+**Multiple voice tones:** Calm (Charlotte), Reassuring (Aria), Nostalgic (Grandpa)
+**Optional emotional intensity sliders:** Adjust enthusiasm or sadness without altering text
+**Streamlit interface:** Easy-to-use web app for instant text-to-speech
+**Temporary audio playback:** Audio is generated and played without saving permanently
+## How to Run Locally
+**1️⃣ Clone the repository:**
+git clone https://github.com/Mars-Node/empathy_voices.git
+cd empathy_voices
+**2️⃣ Create and activate a virtual environment**
+python3 -m venv venv
+source venv/bin/activate
+**3️⃣ Install dependencies:**
+pip install -r requirements.txt
+**4️⃣ Set your ElevenLabs API key:**
+export ELEVENLABS_API_KEY="your_api_key_here"
+**5️⃣ Run the Streamlit app:**
+streamlit run empathy_voices.py
 
-## 💡 Overview
-Empathy Voices analyzes input text and responds with emotionally aware tone and content.  
-Built with Python and Streamlit.
-
-## 🧠 Features
-Generates emotionally aware responses based on input tone
-Simple, intuitive Streamlit interface
-Designed for ethical, human-centered AI exploration
-Modular structure — easy to expand with custom voice or API integrationshttps://github.com/your-username/empathy-voices.git
-
-## 🛠️ Tech Stack
-Python 🐍
-Streamlit 🌈
-Git / GitHub
+## How to Use
+Type a message in the text area.
+Choose a voice tone by clicking one of the buttons (Calm, Reassuring, Nostalgic).
+(Optional) Adjust enthusiasm and sadness sliders for subtle emotional tweaks.
+The app will generate the speech and play it directly in your browser.
 
 ## 👤 About Me  
 
