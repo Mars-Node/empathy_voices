@@ -8,20 +8,25 @@ Empathy Voices is a Streamlit web app that allows users to type a message and he
 **Temporary audio playback:** Audio is generated and played without saving permanently
 ## How to Run Locally
 **1️⃣ Clone the repository:**
+
 git clone https://github.com/Mars-Node/empathy_voices.git
 cd empathy_voices
 
 **2️⃣ Create and activate a virtual environment**
+
 python3 -m venv venv
 source venv/bin/activate
 
 **3️⃣ Install dependencies:**
+
 pip install -r requirements.txt
 
 **4️⃣ Set your ElevenLabs API key:**
+
 export ELEVENLABS_API_KEY="your_api_key_here"
 
 **5️⃣ Run the Streamlit app:**
+
 streamlit run empathy_voices.py
 
 ## How to Use
