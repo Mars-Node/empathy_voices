@@ -1,9 +1,8 @@
-import streamlit as st
 from elevenlabs import ElevenLabs
-# other imports...
+import streamlit as st
 
-# Initialize ElevenLabs client with API key from Streamlit secrets
-eleven_client = ElevenLabs(api_key=st.secrets["general"]["ELEVENLABS_API_KEY"])
+eleven_client = ElevenLabs(api_key=st.secrets["ELEVENLABS_API_KEY"])
+
 
 
 # --- Streamlit UI ---
