@@ -61,6 +61,24 @@ if text_input:
         text=styled_text
     )
 
+    import streamlit as st
+from elevenlabs import client, voices, generate, stream
+
+# Test small text with basic model
+try:
+    test_audio = client.text_to_speech.convert(
+        voice_id="21m00Tcm4TlvDq8ikWAM",  # default ElevenLabs voice
+        model_id="eleven_multilingual_v2",
+        text="This is a test from Streamlit.",
+    )
+
+    audio_bytes = b"".join(test_audio)
+    st.audio(audio_bytes, format="audio/mp3")
+
+except Exception as e:
+    st.error(f"Error: {e}")
+
+    
     # Combine streamed chunks
     audio_bytes = b"".join(audio_stream)
 
