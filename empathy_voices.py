@@ -1,9 +1,9 @@
-from elevenlabs import ElevenLabs
+import tempfile
 import streamlit as st
+from elevenlabs import ElevenLabs
 
+# Initialize ElevenLabs client (expects ELEVENLABS_API_KEY set in Streamlit secrets)
 eleven_client = ElevenLabs(api_key=st.secrets["ELEVENLABS_API_KEY"])
-
-
 
 # --- Streamlit UI ---
 st.title("🎙️ Empathy Voices")
@@ -12,23 +12,15 @@ st.write("Type something you wish you could hear again...")
 
 # User text input
 text_input = st.text_area(
-    "Your message:", 
+    "Your message:",
     placeholder="Example: I miss hearing you read that poem..."
 )
 
-# --- Tone selection ---
+# --- Tone selection (use radio so selection persists across reruns) ---
 st.write("### Choose a voice tone (overrides emotion detection):")
-col1, col2, col3 = st.columns(3)
+preferred_tone = st.radio("Tone", ("Auto (default)", "Calm", "Reassuring", "Nostalgic"))
 
-preferred_tone = None
-if col1.button("🕊️ Calm"):
-    preferred_tone = "Calm"
-if col2.button("💞 Reassuring"):
-    preferred_tone = "Reassuring"
-if col3.button("🌙 Nostalgic"):
-    preferred_tone = "Nostalgic"
-
-# Map tone names to abs voice IDs
+# Map tone names to voice IDs
 voice_map = {
     "CALM": "XB0fDUnXU5powFXDhCwa",       # Charlotte
     "REASSURING": "9BWtsMINqrJLrRacOk9x", # Aria
@@ -45,48 +37,30 @@ if text_input:
     st.info("Generating voice... please wait.")
 
     # Determine which voice to use
-    if preferred_tone:
-        selected_voice = voice_map.get(preferred_tone.upper(), "XB0fDUnXU5powFXDhCwa")
+    if preferred_tone and preferred_tone != "Auto (default)":
+        selected_voice = voice_map.get(preferred_tone.upper(), voice_map["CALM"])
     else:
-        # If no tone selected, default to Calm
+        # Default to Calm if Auto or not selected
         selected_voice = voice_map["CALM"]
 
     # Optional: prepend style tags for emotion sliders (if supported by ElevenLabs)
+    # If the ElevenLabs model doesn't support these tags, remove them.
     styled_text = f"<enthusiasm:{enthusiasm}><sadness:{sadness}>{text_input}"
 
-    # Generate audio stream
-    audio_stream = eleven_client.text_to_speech.convert(
-        voice_id=selected_voice,
-        model_id="eleven_multilingual_v1",
-        text=styled_text
-    )
+    try:
+        # Generate audio stream from ElevenLabs client
+        audio_stream = eleven_client.text_to_speech.convert(
+            voice_id=selected_voice,
+            model_id="eleven_multilingual_v1",
+            text=styled_text
+        )
 
-    import streamlit as st
-from elevenlabs import client, voices, generate, stream
+        # Combine streamed chunks into bytes
+        audio_bytes = b"".join(audio_stream)
 
-# Test small text with basic model
-try:
-    test_audio = client.text_to_speech.convert(
-        voice_id="21m00Tcm4TlvDq8ikWAM",  # default ElevenLabs voice
-        model_id="eleven_multilingual_v2",
-        text="This is a test from Streamlit.",
-    )
+        # Play audio directly from bytes
+        st.audio(audio_bytes, format="audio/mp3")
+        st.success("✨ Voice generated successfully!")
 
-    audio_bytes = b"".join(test_audio)
-    st.audio(audio_bytes, format="audio/mp3")
-
-except Exception as e:
-    st.error(f"Error: {e}")
-
-    
-    # Combine streamed chunks
-    audio_bytes = b"".join(audio_stream)
-
-    # Save temporary mp3 file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
-        temp_audio.write(audio_bytes)
-        temp_path = temp_audio.name
-
-    # Play audio in Streamlit
-    st.audio(temp_path, format="audio/mp3")
-    st.success(f"✨ Voice generated successfully!")
+    except Exception as e:
+        st.error(f"Error generating audio: {e}")
