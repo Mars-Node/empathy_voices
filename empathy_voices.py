@@ -10,49 +10,65 @@ st.title("🎙️ Empathy Voices")
 st.subheader("Because voices carry memories words alone can’t.")
 st.write("Type something you wish you could hear again...")
 
-text_input = st.text_area("Your message:", placeholder="Example: I miss hearing you read that poem...")
+# User text input
+text_input = st.text_area(
+    "Your message:", 
+    placeholder="Example: I miss hearing you read that poem..."
+)
 
-# --- Emotion buttons ---
-st.write("### Choose a tone:")
+# --- Tone selection ---
+st.write("### Choose a voice tone (overrides emotion detection):")
 col1, col2, col3 = st.columns(3)
 
-tone = None
+preferred_tone = None
 if col1.button("🕊️ Calm"):
-    tone = "Calm"
+    preferred_tone = "Calm"
 if col2.button("💞 Reassuring"):
-    tone = "Reassuring"
+    preferred_tone = "Reassuring"
 if col3.button("🌙 Nostalgic"):
-    tone = "Nostalgic"
+    preferred_tone = "Nostalgic"
 
-# Map tone to ElevenLabs voices
+# Map tone names to ElevenLabs voice IDs
 voice_map = {
-    "Calm": "XB0fDUnXU5powFXDhCwa", #Charlotte
-    "Reassuring": "9BWtsMINqrJLrRacOk9x",  #Aria
-    "Nostalgic": "NOpBlnGInO9m6vDvFkFC" #Grandpa
+    "CALM": "XB0fDUnXU5powFXDhCwa",       # Charlotte
+    "REASSURING": "9BWtsMINqrJLrRacOk9x", # Aria
+    "NOSTALGIC": "NOpBlnGInO9m6vDvFkFC"   # Grandpa
 }
 
-# --- Generate voice ---
-if tone and text_input:
-    st.info(f"Generating a {tone.lower()} voice... please wait.")
+# --- Optional: Emotion intensity sliders ---
+st.write("### Optional: Adjust subtle emotional intensity")
+enthusiasm = st.slider("Enthusiasm", 0.0, 1.0, 0.5)
+sadness = st.slider("Sadness", 0.0, 1.0, 0.0)
 
-    selected_voice = voice_map.get(tone, "Rachel")
+# --- Generate voice ---
+if text_input:
+    st.info("Generating voice... please wait.")
+
+    # Determine which voice to use
+    if preferred_tone:
+        selected_voice = voice_map.get(preferred_tone.upper(), "XB0fDUnXU5powFXDhCwa")
+    else:
+        # If no tone selected, default to Calm
+        selected_voice = voice_map["CALM"]
+
+    # Optional: prepend style tags for emotion sliders (if supported by ElevenLabs)
+    styled_text = f"<enthusiasm:{enthusiasm}><sadness:{sadness}>{text_input}"
 
     # Generate audio stream
     audio_stream = eleven_client.text_to_speech.convert(
         voice_id=selected_voice,
         model_id="eleven_multilingual_v2",
-        text=text_input
+        text=styled_text
     )
 
-    # Combine all streamed chunks into a single bytes object
+    # Combine streamed chunks
     audio_bytes = b"".join(audio_stream)
 
-    # Save to a temporary file
+    # Save temporary mp3 file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
         temp_audio.write(audio_bytes)
         temp_path = temp_audio.name
 
-    # Play the generated audio in Streamlit
+    # Play audio in Streamlit
     st.audio(temp_path, format="audio/mp3")
-    st.success(f"✨ {tone} voice generated successfully!")
-
+    st.success(f"✨ Voice generated successfully!")
