@@ -1,66 +1,82 @@
-import tempfile
 import streamlit as st
+import tempfile
+import os
 from elevenlabs import ElevenLabs
 
-# Initialize ElevenLabs client (expects ELEVENLABS_API_KEY set in Streamlit secrets)
+# Initialize ElevenLabs client
 eleven_client = ElevenLabs(api_key=st.secrets["ELEVENLABS_API_KEY"])
 
-# --- Streamlit UI ---
-st.title("🎙️ Empathy Voices")
-st.subheader("Because voices carry memories words alone can’t.")
-st.write("Type something you wish you could hear again...")
+# Page config and theme colors
+st.set_page_config(page_title="Empathy Voices", layout="centered")
 
-# User text input
-text_input = st.text_area(
-    "Your message:",
-    placeholder="Example: I miss hearing you read that poem..."
+st.markdown(
+    """
+    <style>
+        body {
+            font-family: 'Helvetica Neue', sans-serif;
+        }
+        .stApp {
+            background-color: #f8fdf8;
+        }
+        .title {
+            color: #03aa00;
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .subtitle {
+            text-align: center;
+            color: #2092f7;
+            font-size: 1.1em;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 
-# --- Tone selection (use radio so selection persists across reruns) ---
-st.write("### Choose a voice tone (overrides emotion detection):")
-preferred_tone = st.radio("Tone", ("Auto (default)", "Calm", "Reassuring", "Nostalgic"))
+st.markdown('<div class="title">Empathy Voices</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Bring warmth and humanity back to digital speech</div>', unsafe_allow_html=True)
+st.write("")
 
-# Map tone names to voice IDs
-voice_map = {
-    "CALM": "XB0fDUnXU5powFXDhCwa",       # Charlotte
-    "REASSURING": "9BWtsMINqrJLrRacOk9x", # Aria
-    "NOSTALGIC": "NOpBlnGInO9m6vDvFkFC"   # Grandpa
+# Text input
+text_input = st.text_area("📝 Enter text to bring to life:", height=150)
+
+# Voice options mapped to your specific IDs
+voices = {
+    "💛 Comforting Friend": "6aDn1KB0hjpdcocrUkmq",
+    "🔥 Motivational Coach": "bTEswxYhpv7UDkQg5VRu",
+    "👵🏽 Wise Grandmother": "0rEo3eAjssGDUCXHYENf",
 }
 
-# --- Optional: Emotion intensity sliders ---
-st.write("### Optional: Adjust subtle emotional intensity")
-enthusiasm = st.slider("Enthusiasm", 0.0, 1.0, 0.5)
-sadness = st.slider("Sadness", 0.0, 1.0, 0.0)
+# Dropdown for voice tone
+selected_label = st.selectbox("🎙️ Choose a voice:", list(voices.keys()))
+voice_id = voices[selected_label]
 
-# --- Generate voice ---
-if text_input:
-    st.info("Generating voice... please wait.")
+# Voice stability slider
+stability = st.slider("🎚️ Emotional Stability (lower = more expressive)", 0.0, 1.0, 0.5, 0.05)
 
-    # Determine which voice to use
-    if preferred_tone and preferred_tone != "Auto (default)":
-        selected_voice = voice_map.get(preferred_tone.upper(), voice_map["CALM"])
+# Generate button
+if st.button("🎧 Generate Voice"):
+    if not text_input.strip():
+        st.warning("Please enter some text first.")
     else:
-        # Default to Calm if Auto or not selected
-        selected_voice = voice_map["CALM"]
+        with st.spinner("Synthesizing empathy..."):
+            try:
+                audio_stream = eleven_client.text_to_speech.convert(
+                    voice_id=voice_id,
+                    model_id="eleven_multilingual_v2",
+                    text=text_input,
+                    output_format="mp3_44100_128",
+                    voice_settings={"stability": stability, "similarity_boost": 0.8},
+                )
 
-    # Optional: prepend style tags for emotion sliders (if supported by ElevenLabs)
-    # If the ElevenLabs model doesn't support these tags, remove them.
-    styled_text = f"<enthusiasm:{enthusiasm}><sadness:{sadness}>{text_input}"
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
+                    for chunk in audio_stream:
+                        tmp.write(chunk)
+                    tmp_path = tmp.name
 
-    try:
-        # Generate audio stream from ElevenLabs client
-        audio_stream = eleven_client.text_to_speech.convert(
-            voice_id=selected_voice,
-            model_id="eleven_multilingual_v1",
-            text=styled_text
-        )
+                st.audio(tmp_path, format="audio/mp3")
+                st.success(f"✅ Voice generated successfully — {selected_label}")
 
-        # Combine streamed chunks into bytes
-        audio_bytes = b"".join(audio_stream)
-
-        # Play audio directly from bytes
-        st.audio(audio_bytes, format="audio/mp3")
-        st.success("✨ Voice generated successfully!")
-
-    except Exception as e:
-        st.error(f"Error generating audio: {e}")
+            except Exception as e:
+                st.error(f"An error occurred: {str(e)}")
