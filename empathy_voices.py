@@ -1,9 +1,10 @@
 import streamlit as st
-import tempfile
 from elevenlabs import ElevenLabs
+# other imports...
 
-# Initialize ElevenLabs client
-eleven_client = ElevenLabs()
+# Initialize ElevenLabs client with API key from Streamlit secrets
+eleven_client = ElevenLabs(api_key=st.secrets["general"]["ELEVENLABS_API_KEY"])
+
 
 # --- Streamlit UI ---
 st.title("🎙️ Empathy Voices")
@@ -28,7 +29,7 @@ if col2.button("💞 Reassuring"):
 if col3.button("🌙 Nostalgic"):
     preferred_tone = "Nostalgic"
 
-# Map tone names to ElevenLabs voice IDs
+# Map tone names to abs voice IDs
 voice_map = {
     "CALM": "XB0fDUnXU5powFXDhCwa",       # Charlotte
     "REASSURING": "9BWtsMINqrJLrRacOk9x", # Aria
