@@ -57,7 +57,7 @@ if text_input:
     # Generate audio stream
     audio_stream = eleven_client.text_to_speech.convert(
         voice_id=selected_voice,
-        model_id="eleven_multilingual_v2",
+        model_id="eleven_multilingual_v1",
         text=styled_text
     )
 
